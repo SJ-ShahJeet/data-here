@@ -3,172 +3,293 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>data-here · story mode</title>
+<title>data-here</title>
 <style>
-  :root { --bg:#121826; --panel:#1E2638; --line:#2C3650; --ink:#F6F4EF; --soft:#C9D2E3; --mute:#8A96AD; --acc:#FF7A45; --good:#5BC489; }
-  * { box-sizing: border-box; }
+  :root { --bg:#0F1420; --panel:#1A2233; --line:#2A3550; --ink:#F6F4EF; --soft:#C9D2E3; --mute:#8A96AD; --acc:#FF7A45; --good:#5BC489;
+          --fit:#FF7A45; --intent:#4C8DFF; --lookalike:#B07CFF; --warmth:#5BC489; }
+  * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-  header { display:flex; align-items:center; justify-content:space-between; padding:20px 40px; border-bottom:1px solid var(--line); }
-  header b { font-size:22px; letter-spacing:-0.5px; }
+  .mono { font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 40px; border-bottom:1px solid var(--line); }
+  header b { font-size:22px; letter-spacing:-0.5px; } header b em { color:var(--acc); font-style:normal; }
   .dots { display:flex; gap:8px; }
   .dot { width:10px; height:10px; border-radius:50%; background:var(--line); cursor:pointer; }
   .dot.on { background:var(--acc); }
-  main { max-width:1180px; margin:0 auto; padding:48px 40px 120px; }
+  main { max-width:1200px; margin:0 auto; padding:44px 40px 120px; animation:in .35s ease-out; }
+  @keyframes in { from { opacity:0; transform:translateY(8px); } }
   .eyebrow { color:var(--acc); font-size:14px; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
-  h1 { font-size:56px; line-height:1.08; margin:0 0 20px; letter-spacing:-1.5px; }
-  h2 { font-size:40px; line-height:1.1; margin:0 0 28px; letter-spacing:-1px; }
-  p.lead { font-size:22px; color:var(--soft); max-width:900px; margin:0 0 28px; }
-  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 20px; }
-  .chip { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 14px; font-size:16px; color:var(--soft); }
+  h1 { font-size:64px; line-height:1.04; margin:0 0 20px; letter-spacing:-2px; }
+  h2 { font-size:42px; line-height:1.08; margin:0 0 14px; letter-spacing:-1px; }
+  h1 em, h2 em { color:var(--acc); font-style:normal; }
+  p.lead { font-size:22px; color:var(--soft); max-width:860px; margin:0 0 28px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 18px; }
+  .chip { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:15px; color:var(--soft); }
   .chip.acc { border-color:var(--acc); color:var(--ink); }
   .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; }
   .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; }
-  .big { font-size:64px; font-weight:700; line-height:1; color:var(--acc); }
-  .label { color:var(--mute); font-size:14px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
-  .bar { display:flex; height:28px; border-radius:8px; overflow:hidden; margin:18px 0 10px; }
+  .card h3 { margin:6px 0 6px; font-size:20px; } .card p { margin:0; color:var(--soft); font-size:16px; }
+  .step { color:var(--acc); font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; }
+  .big { font-size:60px; font-weight:800; line-height:1; color:var(--acc); }
+  .label { color:var(--mute); font-size:13px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
+  .bar { display:flex; height:30px; border-radius:8px; overflow:hidden; margin:22px 0 10px; }
   .bar span { display:block; height:100%; }
-  .legend { display:flex; flex-wrap:wrap; gap:18px; color:var(--soft); font-size:15px; }
+  .legend { display:flex; flex-wrap:wrap; gap:16px; color:var(--soft); font-size:15px; }
   .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
-  .row { display:grid; grid-template-columns:44px 1fr 90px; gap:16px; align-items:start; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--panel); margin-bottom:10px; cursor:pointer; }
-  .row:hover { border-color:var(--acc); }
-  .rank { font-size:28px; font-weight:700; color:var(--mute); }
-  .who b { font-size:20px; } .who div { color:var(--soft); font-size:16px; }
-  .score { text-align:right; font-size:26px; font-weight:700; color:var(--acc); }
-  .reasons { grid-column:2 / 4; display:none; margin-top:6px; }
-  .row.open .reasons { display:block; }
-  .reason { margin:8px 0; }
-  .reason .f { display:inline-block; min-width:128px; color:var(--acc); font-size:14px; }
-  .path { color:var(--mute); font-size:14px; margin-left:132px; }
-  .hook { margin-top:10px; padding:12px 14px; border-left:3px solid var(--acc); background:#18203A; color:var(--soft); font-style:italic; }
+
+  /* graph */
+  .map { display:grid; grid-template-columns:1fr 340px; gap:18px; align-items:start; }
+  .map svg { width:100%; height:auto; background:var(--panel); border:1px solid var(--line); border-radius:16px; }
+  .map svg line { stroke-width:1.6; opacity:.5; transition:opacity .2s; }
+  .map svg .n { transition:opacity .2s; }
+  .map svg .n.person { cursor:pointer; }
+  .map svg text { fill:var(--soft); font-size:12px; pointer-events:none; paint-order:stroke; stroke:var(--panel); stroke-width:4px; }
+  .map svg .person text, .map svg .you text { fill:var(--ink); font-weight:700; font-size:13px; }
+  .map svg.focus line:not(.hot) { opacity:.06; } .map svg.focus line.hot { opacity:1; stroke-width:2.6; }
+  .map svg.focus .n:not(.hot) { opacity:.18; }
+  .side { max-height:560px; overflow:auto; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; }
+  .side h3 { margin:0; font-size:24px; } .side .sub { color:var(--soft); font-size:15px; margin-bottom:12px; }
+
+  /* prospects */
+  .pills { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .pill { font-size:13px; border-radius:999px; padding:3px 10px; color:#0F1420; font-weight:700; }
+  .why { margin:6px 0; font-size:15px; color:var(--soft); padding-left:12px; border-left:3px solid var(--line); }
+  .hook { margin-top:10px; padding:10px 12px; border-left:3px solid var(--acc); background:#151C2E; color:var(--soft); font-style:italic; font-size:15px; }
   .warm { color:var(--good); font-weight:600; }
-  .note { font-size:24px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 24px; margin-bottom:18px; }
-  .move { display:flex; align-items:center; gap:24px; font-size:28px; margin:24px 0; }
-  .move .big { font-size:80px; }
-  .email { background:#F6F4EF; color:#121826; border-radius:16px; padding:28px 32px; max-width:860px; white-space:pre-wrap; font-size:18px; }
+  .row { display:grid; grid-template-columns:44px 1fr 80px; gap:14px; align-items:start; padding:14px 18px; border:1px solid var(--line); border-radius:14px; background:var(--panel); margin-bottom:10px; cursor:pointer; }
+  .row:hover { border-color:var(--acc); }
+  .rank { font-size:26px; font-weight:800; color:var(--mute); }
+  .who b { font-size:20px; } .who > div { color:var(--soft); font-size:16px; }
+  .score { text-align:right; font-size:26px; font-weight:800; color:var(--acc); }
+  .more { grid-column:2 / 4; display:none; }
+  .row.open .more { display:block; }
+
+  .note { font-size:24px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 22px; margin-bottom:14px; }
+  .email { background:#F6F4EF; color:#0F1420; border-radius:16px; padding:26px 30px; max-width:860px; white-space:pre-wrap; font-size:18px; }
   .email .meta { color:#4A5568; font-size:15px; margin-bottom:14px; white-space:normal; }
   .approve { display:flex; gap:12px; margin-top:20px; }
   button { font:inherit; border-radius:10px; padding:10px 22px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
-  button.primary { background:var(--acc); border-color:var(--acc); color:#121826; font-weight:700; }
+  button.primary { background:var(--acc); border-color:var(--acc); color:#0F1420; font-weight:700; }
   .nav { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; padding:16px 40px; background:linear-gradient(transparent, var(--bg) 40%); }
   .sent { color:var(--good); font-weight:600; margin-top:14px; display:none; }
-  form { display:grid; gap:20px; max-width:760px; margin-top:12px; }
+
+  form { display:grid; gap:18px; max-width:720px; margin-top:8px; }
   label { display:grid; gap:8px; font-weight:600; }
   label small { color:var(--mute); font-weight:400; font-size:15px; }
-  input[type=text], input[type=url], input[type=number] { font:inherit; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  input[type=text], input[type=url] { font:inherit; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
   input:focus { outline:2px solid var(--acc); outline-offset:1px; }
   input[type=file] { color:var(--soft); }
-  .or { color:var(--mute); text-align:center; font-size:14px; letter-spacing:2px; }
+  .two { display:grid; grid-template-columns:1fr auto 1fr; gap:14px; align-items:end; }
+  .or { color:var(--mute); font-size:13px; letter-spacing:2px; padding-bottom:14px; }
   .err { color:#FF8A8A; min-height:1.4em; }
-  .log { background:#0C111C; border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-size:14px; color:var(--soft); max-height:340px; overflow:auto; white-space:pre-wrap; }
-  .spin { display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:sp 0.8s linear infinite; vertical-align:-2px; margin-right:8px; }
+  .stack { display:flex; flex-wrap:wrap; gap:10px; margin-top:34px; color:var(--mute); font-size:15px; }
+  .stack span b { color:var(--soft); }
+
+  .stages { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:22px 0; }
+  .stage { border:1px solid var(--line); border-radius:12px; padding:12px 14px; color:var(--mute); font-size:15px; }
+  .stage.done { border-color:var(--good); color:var(--ink); } .stage.now { border-color:var(--acc); color:var(--ink); }
+  .stage b { display:block; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:2px; }
+  .log { background:#0A0E17; border:1px solid var(--line); border-radius:12px; padding:14px 16px; font-size:13px; color:var(--soft); max-height:300px; overflow:auto; white-space:pre-wrap; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:sp .8s linear infinite; vertical-align:2px; margin-right:10px; }
   @keyframes sp { to { transform:rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .spin { animation:none; } }
-  @media (max-width: 700px) { main { padding:28px 16px 110px; } h1 { font-size:36px; } h2 { font-size:28px; } .row { grid-template-columns:32px 1fr 60px; } .path { margin-left:0; } }
+  @media (prefers-reduced-motion: reduce) { .spin, main { animation:none; } }
+  @media (max-width: 900px) { .map { grid-template-columns:1fr; } }
+  @media (max-width: 700px) { header, .nav { padding-left:16px; padding-right:16px; } main { padding:28px 16px 110px; } h1 { font-size:38px; } h2 { font-size:28px; }
+    .row { grid-template-columns:30px 1fr 56px; } .two { grid-template-columns:1fr; } .or { padding:0; } .stages { grid-template-columns:1fr 1fr; } }
 </style>
 </head>
 <body>
-<header><b>data-here</b><div class="dots" id="dots"></div><button id="restart" style="visibility:hidden">New run</button></header>
+<header><b>data<em>·</em>here</b><div class="dots" id="dots"></div><button id="restart" style="visibility:hidden">New run</button></header>
 <main id="beat"></main>
 <div class="nav"><button id="prev">← Back</button><button class="primary" id="next">Next →</button></div>
 <script>
 const KIND_COLORS = { operator:'#FF7A45', vendor:'#4C8DFF', investor:'#B07CFF', association:'#5BC489', media:'#E8C547', other:'#56607A' };
+const FACTOR = { fit:'#FF7A45', intent:'#4C8DFF', lookalike:'#B07CFF', warmth:'#5BC489' };
+const NODE = { you:'#FF7A45', person:'#F6F4EF', company:'#4C8DFF', segment:'#B07CFF', role:'#8A96AD', topic:'#E8C547', contact:'#5BC489' };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
 let S, i = 0;
 
-const reasonsHtml = m => m.reasons.map(r =>
-  `<div class="reason"><span class="f mono">${esc(r.factor)} +${r.points}</span>${esc(r.text)}</div>
-   <div class="path mono">${r.path.map(esc).join(' → ')}</div>`).join('')
-  + (m.warm_intro ? `<div class="reason warm">Warm intro: ${esc(m.warm_intro)}</div>` : '')
-  + (m.hook ? `<div class="hook">“${esc(m.hook.slice(0, 260))}${m.hook.length > 260 ? '…' : ''}”</div>` : '');
-
+// ---- prospect pieces ----
+const uniq = m => [...new Map(m.reasons.map(r => [r.text, r])).values()];
+const pills = m => {
+  const t = {}; m.reasons.forEach(r => t[r.factor] = (t[r.factor] || 0) + r.points);
+  return `<div class="pills">${Object.entries(t).map(([f, p]) => `<span class="pill" style="background:${FACTOR[f]}">${f} +${p}</span>`).join('')}</div>`;
+};
+const why = m => uniq(m).map(r => `<div class="why" style="border-color:${FACTOR[r.factor]}">${esc(r.text)}</div>`).join('')
+  + (m.hook ? `<div class="hook">“${esc(m.hook.slice(0, 220))}${m.hook.length > 220 ? '…' : ''}”</div>` : '');
 const row = (m, n, open) => `<div class="row${open ? ' open' : ''}" onclick="this.classList.toggle('open')">
   <div class="rank">${n}</div>
-  <div class="who"><b>${esc(m.name)}</b>${m.warm_intro ? ' <span class="warm">· warm intro</span>' : ''}<div>${esc(m.title)} · ${esc(m.company)}</div></div>
-  <div class="score">${m.score}</div><div class="reasons">${reasonsHtml(m)}</div></div>`;
+  <div class="who"><b>${esc(m.name)}</b>${m.warm_intro ? ' <span class="warm">· warm intro</span>' : ''}<div>${esc(m.title)} · ${esc(m.company)}</div>${pills(m)}</div>
+  <div class="score">${m.score}</div><div class="more">${why(m)}</div></div>`;
 
+// ---- graph: every reason is a FalkorDB path; draw them all on one map ----
+function buildGraph(cards) {
+  const nodes = new Map(), edges = new Map();
+  const add = (kind, label, extra) => { const id = kind === 'you' ? 'you' : `${kind}:${label}`;
+    if (!nodes.has(id)) nodes.set(id, { id, kind, label: kind === 'you' ? S.seller.name : label, owners: new Set(), ...extra });
+    return nodes.get(id); };
+  cards.forEach((m, r) => {
+    add('person', m.name, { rank: r + 1, card: m });
+    for (const re of m.reasons) {
+      const p = re.path, q = [];  // collapse "-HAS_SIGNAL-> site -ABOUT->" into one SIGNAL hop
+      for (let k = 0; k < p.length; k++) {
+        if ((p[k] === 'site' || p[k] === 'post') && (p[k - 1] === 'HAS_SIGNAL' || p[k - 1] === 'POSTED')) { q.pop(); q.push('SIGNAL'); k++; continue; }
+        q.push(p[k]);
+      }
+      let prev = null, prevKind = null;
+      for (let k = 0; k < q.length; k += 2) {
+        const rel = q[k - 1], label = q[k];
+        const kind = k === 0 ? (label === 'Me' ? 'you' : q[1] === 'IS' ? 'company' : 'person')
+          : { WORKS_AT:'company', HAS_ROLE:'role', SIGNAL:'topic', TARGETED_BY:'you', HAS_CUSTOMER:'you' }[rel]
+            || (rel === 'IS' ? (prevKind === 'segment' ? 'company' : 'segment') : rel === 'KNOWS' ? (label === m.name ? 'person' : 'contact') : 'topic');
+        const n = add(kind, label); n.owners.add(m.name);
+        if (prev) { const key = [prev.id, n.id].sort().join('|');
+          if (!edges.has(key)) edges.set(key, { a: prev, b: n, factor: re.factor, owners: new Set() });
+          edges.get(key).owners.add(m.name); }
+        prev = n; prevKind = kind;
+      }
+    }
+  });
+  return { nodes: [...nodes.values()], edges: [...edges.values()] };
+}
+
+function layout(g, W, H) {  // small deterministic force layout: repel all, pull along edges, gravity to centre
+  g.nodes.forEach((n, k) => { const a = k * 2.39996, r = 30 + 26 * Math.sqrt(k); n.x = W / 2 + Math.cos(a) * r; n.y = H / 2 + Math.sin(a) * r; n.vx = n.vy = 0; });
+  for (let t = 0; t < 420; t++) {
+    const alpha = 1 - t / 420;
+    for (let a = 0; a < g.nodes.length; a++) for (let b = a + 1; b < g.nodes.length; b++) {
+      const A = g.nodes[a], B = g.nodes[b], dx = A.x - B.x, dy = A.y - B.y, d2 = Math.max(dx * dx + dy * dy, 80), f = 9000 / d2 / Math.sqrt(d2);
+      A.vx += dx * f; A.vy += dy * f; B.vx -= dx * f; B.vy -= dy * f;
+    }
+    for (const e of g.edges) { const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.hypot(dx, dy) || 1, f = (d - 110) * 0.03 / d;
+      e.a.vx += dx * f; e.a.vy += dy * f; e.b.vx -= dx * f; e.b.vy -= dy * f; }
+    for (const n of g.nodes) {
+      n.vx += (W / 2 - n.x) * 0.002; n.vy += (H / 2 - n.y) * 0.004;
+      if (n.kind === 'you') { n.x = W / 2; n.y = H / 2; continue; }
+      n.x = Math.min(W - 70, Math.max(70, n.x + n.vx * alpha)); n.y = Math.min(H - 24, Math.max(24, n.y + n.vy * alpha)); n.vx *= 0.5; n.vy *= 0.5;
+    }
+  }
+}
+
+function mountGraph(el, cards, pick) {
+  const W = 1000, H = 640, g = buildGraph(cards); layout(g, W, H);
+  const r = n => n.kind === 'you' ? 20 : n.kind === 'person' ? 7 + n.card.score * 0.7 : n.kind === 'company' ? 9 : 6;
+  const degree = n => g.edges.filter(e => e.a === n || e.b === n).length;
+  const label = n => n.kind !== 'topic' && n.kind !== 'role' || degree(n) > 1;
+  el.innerHTML = `<div class="map"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Prospect graph">
+    ${g.edges.map((e, k) => `<line data-e="${k}" x1="${e.a.x}" y1="${e.a.y}" x2="${e.b.x}" y2="${e.b.y}" stroke="${FACTOR[e.factor] || '#56607A'}"/>`).join('')}
+    ${g.nodes.map((n, k) => `<g class="n ${n.kind}" data-n="${k}" transform="translate(${n.x},${n.y})"><title>${esc(n.label)}</title>
+      <circle r="${r(n)}" fill="${NODE[n.kind]}" ${n.kind === 'person' ? 'stroke="#FF7A45" stroke-width="2"' : ''}/>
+      ${n.kind === 'person' ? `<text text-anchor="middle" dy="4" style="fill:#0F1420;stroke:none;font-size:11px">${n.rank}</text>` : ''}
+      ${label(n) ? `<text text-anchor="middle" dy="${r(n) + 14}">${esc(n.label.length > 22 ? n.label.slice(0, 21) + '…' : n.label)}</text>` : ''}</g>`).join('')}
+    </svg><div class="side" id="side"></div></div>
+    <div class="legend" style="margin-top:12px">${Object.entries(NODE).map(([k, c]) => `<span><i style="background:${c}"></i>${k}</span>`).join('')}
+      <span style="margin-left:auto">${Object.entries(FACTOR).map(([f, c]) => `<span style="color:${c}">━ ${f}</span>`).join(' &nbsp;')}</span></div>`;
+  const svg = el.querySelector('svg');
+  const select = name => {
+    const m = cards.find(c => c.name === name) || cards[0], n = cards.indexOf(m) + 1;
+    svg.classList.add('focus');
+    svg.querySelectorAll('line').forEach(l => l.classList.toggle('hot', g.edges[l.dataset.e].owners.has(m.name)));
+    svg.querySelectorAll('.n').forEach(x => { const nd = g.nodes[x.dataset.n]; x.classList.toggle('hot', nd.owners.has(m.name) || nd.kind === 'you'); });
+    $('side').innerHTML = `<div class="label">#${n} · score ${m.score}</div><h3>${esc(m.name)}</h3><div class="sub">${esc(m.title)} · ${esc(m.company)}</div>${pills(m)}${why(m)}`;
+  };
+  svg.addEventListener('click', e => { const x = e.target.closest('.n.person'); if (x) select(g.nodes[x.dataset.n].label); });
+  select(pick);
+}
+
+// ---- the story ----
 const beats = [
   () => `<div class="eyebrow">${esc(S.event)}</div>
-    <h1>Who should ${esc(S.seller.name)} meet here, and why?</h1>
-    <p class="lead">${S.room.people} attendees. One sheet. data-here reads the live web with Bright Data, connects it in FalkorDB, and an agent on TrueForge tells you who to talk to, with the evidence.</p>`,
-  () => { const icp = S.seller.icp; return `<div class="eyebrow">1 · Understand you</div>
-    <h2>${esc(S.seller.url)}</h2><p class="lead">${esc(S.seller.summary)}</p>
-    <div class="label">Segments</div><div class="chips">${icp.segments.map(s => `<span class="chip acc">${esc(s)}</span>`).join('')}</div>
-    <div class="label">Buyers</div><div class="chips">${icp.buyer_roles.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>
-    <div class="label">Pains we listen for</div><div class="chips">${icp.pain_topics.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>
-    <div class="label">Customers (lookalike anchors)</div><div class="chips">${S.seller.customers.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>`; },
-  () => { const k = S.room.kinds, total = S.room.companies, ops = k.operator || 0;
-    return `<div class="eyebrow">2 · Read the room</div><h2>${S.room.people} people, ${total} companies. ${ops} are buyers.</h2>
-    <div class="bar">${Object.entries(k).sort((a,b)=>b[1]-a[1]).map(([n,c]) => `<span title="${esc(n)} ${c}" style="width:${100*c/total}%;background:${KIND_COLORS[n] || '#56607A'}"></span>`).join('')}</div>
-    <div class="legend">${Object.entries(k).sort((a,b)=>b[1]-a[1]).map(([n,c]) => `<span><i style="background:${KIND_COLORS[n] || '#56607A'}"></i>${esc(n)} ${c}</span>`).join('')}</div>
-    <div class="grid" style="margin-top:32px">
-      <div class="card"><div class="label">Vendors skipped</div><div class="big">${k.vendor || 0}</div></div>
-      <div class="card"><div class="label">Intent signals found</div><div class="big">${S.room.signals}</div></div>
-      <div class="card"><div class="label">Operators to rank</div><div class="big">${ops}</div></div></div>`; },
-  () => `<div class="eyebrow">3 · Rank + why</div><h2>Top ${S.top.length}. Tap anyone for the evidence.</h2>
+    <h1>Stop working the room.<br><em>Work the right ${S.top.length}.</em></h1>
+    <p class="lead">${S.room.people} badges, one afternoon. We read every one so ${esc(S.seller.name)} only talks to buyers with a reason to say yes, and you get the receipts.</p>
+    <div class="grid">
+      <div class="card"><div class="step">Bright Data · reads</div><h3>The live web</h3><p>Your site, every attendee’s company site, Google, and LinkedIn posts.</p></div>
+      <div class="card"><div class="step">FalkorDB · connects</div><h3>One graph</h3><p>People, companies, signals and who you know. Every score is a path you can click.</p></div>
+      <div class="card"><div class="step">TrueForge + OpenAI · acts</div><h3>An agent on a leash</h3><p>Ranks, explains, drafts. Nothing goes out until you approve.</p></div></div>`,
+  () => { const icp = S.seller.icp; return `<div class="eyebrow">1 · Know thyself</div>
+    <h2>First, we read <em>${esc(S.seller.url.replace(/^https?:\/\//, ''))}</em>.</h2><p class="lead">${esc(S.seller.summary)}</p>
+    <div class="grid">
+      <div class="card"><div class="label">Who buys</div><div class="chips">${icp.segments.map(s => `<span class="chip acc">${esc(s)}</span>`).join('')}${icp.buyer_roles.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div>
+      <div class="card"><div class="label">Pains we listen for</div><div class="chips">${icp.pain_topics.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div>
+      <div class="card"><div class="label">Customers we find twins of</div><div class="chips">${S.seller.customers.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div></div></div>`; },
+  () => { const k = S.room.kinds, total = S.room.companies, ops = k.operator || 0, skip = total - ops, sorted = Object.entries(k).sort((a, b) => b[1] - a[1]);
+    return `<div class="eyebrow">2 · Read the room</div><h2>${S.room.people} badges. <em>${ops} buying companies.</em> ${skip} to skip.</h2>
+    <p class="lead">A big slice of the room is selling, not buying. We sorted all ${total} companies so you never pitch a fellow vendor.</p>
+    <div class="bar">${sorted.map(([n, c]) => `<span title="${esc(n)} ${c}" style="width:${100 * c / total}%;background:${KIND_COLORS[n] || '#56607A'}"></span>`).join('')}</div>
+    <div class="legend">${sorted.map(([n, c]) => `<span><i style="background:${KIND_COLORS[n] || '#56607A'}"></i>${esc(n)} ${c}</span>`).join('')}</div>
+    <div class="grid" style="margin-top:30px">
+      <div class="card"><div class="label">Buying companies</div><div class="big">${ops}</div></div>
+      <div class="card"><div class="label">Vendors &amp; others skipped</div><div class="big" style="color:var(--mute)">${skip}</div></div>
+      <div class="card"><div class="label">Buying signals found</div><div class="big" style="color:var(--intent)">${S.room.signals}</div></div></div>`; },
+  () => `<div class="eyebrow">3 · The map</div><h2>Every pick has a reason. <em>Here’s the graph.</em></h2>
+    <p class="lead" style="margin-bottom:16px">Click a person. The lit paths are exactly why they made the list.</p><div id="graph" data-src="top"></div>`,
+  () => `<div class="eyebrow">4 · Your hit list</div><h2>Your top ${S.top.length}, <em>with receipts.</em></h2>
     ${S.top.map((m, n) => row(m, n + 1, n === 0)).join('')}`,
-  () => { const M = S.memory; return `<div class="eyebrow">4 · Remember who you know</div>
+  () => { const M = S.memory; return `<div class="eyebrow">5 · Your network is a cheat code</div>
+    <h2>One note. <em>${esc(M.target)} jumps #${M.rank_before} → #${M.rank_after ?? '—'}.</em></h2>
     <div class="note mono">“${esc(M.note)}”</div>
-    <div class="label">Written to the graph</div><div class="chips">${M.edges.map(e => `<span class="chip mono">${esc(e)}</span>`).join('')}</div>
-    <div class="move"><span>${esc(M.target)}</span><span class="big" style="color:var(--mute)">#${M.rank_before}</span><span>→</span><span class="big">#${M.rank_after ?? '—'}</span></div>
-    ${M.top_after.map((m, n) => row(m, n + 1, m.name === M.target)).join('')}`; },
-  () => `<div class="eyebrow">5 · Reach out</div><h2>Drafted from their own words. Sent only when you approve.</h2>
+    <div id="graph" data-src="memory"></div>`; },
+  () => `<div class="eyebrow">6 · Open with their words</div><h2>The first line writes itself. <em>You hit send.</em></h2>
     <div class="email"><div class="meta">To: ${esc(S.email.to)} · Subject: <b>${esc(S.email.subject)}</b></div>${esc(S.email.body)}</div>
-    <div class="approve"><button class="primary" onclick="document.getElementById('sent').style.display='block'">Approve &amp; send</button><button>Deny</button></div>
+    <div class="approve"><button class="primary" onclick="$('sent').style.display='block'">Approve &amp; send</button><button>Deny</button></div>
     <div class="sent" id="sent">Approved. In the live agent this is TrueForge’s approval gate on send_email.</div>`,
 ];
 
 function show(n) {
   if (!S) return;
   i = Math.max(0, Math.min(beats.length - 1, n));
-  document.getElementById('beat').innerHTML = beats[i]();
-  document.getElementById('dots').innerHTML = beats.map((_, k) => `<span class="dot${k === i ? ' on' : ''}" onclick="show(${k})"></span>`).join('');
-  document.getElementById('prev').style.visibility = i ? 'visible' : 'hidden';
-  document.getElementById('next').style.visibility = i < beats.length - 1 ? 'visible' : 'hidden';
+  $('beat').innerHTML = beats[i]();
+  const g = $('graph');
+  if (g) g.dataset.src === 'memory' ? mountGraph(g, S.memory.top_after, S.memory.target) : mountGraph(g, S.top, S.top[0].name);
+  $('dots').innerHTML = beats.map((_, k) => `<span class="dot${k === i ? ' on' : ''}" onclick="show(${k})"></span>`).join('');
+  $('prev').style.visibility = i ? 'visible' : 'hidden';
+  $('next').style.visibility = i < beats.length - 1 ? 'visible' : 'hidden';
   window.scrollTo(0, 0);
 }
-document.getElementById('prev').onclick = () => show(i - 1);
-document.getElementById('next').onclick = () => show(i + 1);
+$('prev').onclick = () => show(i - 1);
+$('next').onclick = () => show(i + 1);
 document.addEventListener('keydown', e => { if (!S || e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(i + 1); } if (e.key === 'ArrowLeft') show(i - 1); });
-const $ = id => document.getElementById(id);
-function chrome(on) {
-  for (const id of ['prev', 'next', 'dots']) $(id).style.visibility = on ? 'visible' : 'hidden';
-  $('restart').style.visibility = on ? 'visible' : 'hidden';
-}
+function chrome(on) { for (const id of ['prev', 'next', 'dots', 'restart']) $(id).style.visibility = on ? 'visible' : 'hidden'; }
 
 function showForm(err) {
   S = null; chrome(false);
-  $('beat').innerHTML = `<div class="eyebrow">Story mode</div>
-    <h1>Who should you meet at your next event?</h1>
-    <p class="lead">Give us your company and the event. data-here reads the live web, connects it in a graph, and tells you who to talk to, and why.</p>
+  $('beat').innerHTML = `<div class="eyebrow">Event prospecting for GTM teams</div>
+    <h1>Know who to meet<br><em>before you walk in.</em></h1>
+    <p class="lead">Drop your website and the attendee list. Get a ranked hit list, the reason behind every name, and a first email ready to send.</p>
     <form id="f">
       <label>Your company website <input type="text" name="website" placeholder="forkastrestaurants.com" required></label>
-      <label>Event link <small>A public Luma event page. Only hosts and featured guests are public.</small>
-        <input type="url" name="event_url" placeholder="https://luma.com/your-event"></label>
-      <div class="or">OR</div>
-      <label>Attendee sheet <small>.xlsx or .csv with Name, Role, Company columns (e.g. the host’s export)</small>
-        <input type="file" name="sheet" accept=".xlsx,.csv"></label>
-      <label>Event name <small>Optional. Taken from the page or file name if empty.</small>
-        <input type="text" name="event_name" placeholder="Fast Casual Summit"></label>
+      <div class="two">
+        <label>Attendee sheet <small>.xlsx or .csv: Name, Role, Company</small><input type="file" name="sheet" accept=".xlsx,.csv"></label>
+        <div class="or">OR</div>
+        <label>Public Luma link <small>hosts + featured guests only</small><input type="url" name="event_url" placeholder="https://luma.com/your-event"></label>
+      </div>
+      <label>Event name <small>optional</small><input type="text" name="event_name" placeholder="Fast Casual Summit"></label>
       <div class="err" id="err">${esc(err || '')}</div>
       <div><button class="primary" type="submit">Find my people →</button></div>
-    </form>`;
+    </form>
+    <div class="stack"><span><b>Bright Data</b> reads the web</span>·<span><b>FalkorDB</b> connects it</span>·<span><b>TrueForge + OpenAI</b> acts on it</span></div>`;
   $('f').onsubmit = async e => {
     e.preventDefault();
     $('err').textContent = '';
     const r = await fetch('/api/run', { method: 'POST', body: new FormData(e.target) });
     const d = await r.json();
     if (!r.ok) { $('err').textContent = d.error || 'Something went wrong.'; return; }
-    poll(d.id, d.event);
+    stage = 0; poll(d.id, d.event);
   };
 }
 
+// progress: light up a stage when its first log line appears (pipeline.py prints these)
+const STAGES = [['Bright Data', 'Reading your site', /^seller:/], ['Bright Data', 'Sorting the room', /^\[\d+\/\d+\] .+: \w+/],
+                ['Bright Data', 'Reading LinkedIn', /enriched/], ['FalkorDB', 'Connecting the graph', /building the story/]];
+let stage = 0;
 async function poll(id, event) {
   const d = await (await fetch(`/api/jobs/${id}`)).json();
   if (d.status === 'error') return showForm(`Run failed: ${d.error}`);
   if (d.status === 'done') { S = await (await fetch(`/api/jobs/${id}/story`)).json(); chrome(true); return show(0); }
-  $('beat').innerHTML = `<div class="eyebrow">Working</div><h2><span class="spin"></span>Reading ${esc(event)}</h2>
-    <p class="lead">Bright Data is reading websites, search results and LinkedIn; FalkorDB is connecting it. Repeat runs replay from cache.</p>
+  for (const line of d.log) STAGES.forEach(([, , re], k) => { if (re.test(line)) stage = Math.max(stage, k + 1); });
+  $('beat').innerHTML = `<div class="eyebrow">Working</div><h2><span class="spin"></span>Reading the room at ${esc(event)}</h2>
+    <p class="lead">Repeat runs replay from cache in seconds. New events run live.</p>
+    <div class="stages">${STAGES.map(([who, what], k) => `<div class="stage${k < stage ? ' done' : k === stage ? ' now' : ''}"><b>${who}</b>${what}</div>`).join('')}</div>
     <div class="log mono">${d.log.map(esc).join('\n') || 'starting…'}</div>`;
   setTimeout(() => poll(id, event), 1200);
 }
