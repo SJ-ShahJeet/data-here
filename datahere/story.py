@@ -1,20 +1,13 @@
-"""Story mode: freeze one finished run into story.json + a static page, for an offline stage demo.
+"""Story mode: freeze one finished run into story.json, which the story-mode page (app.py) steps through.
 
-The page reads only story.json: no network, no LLM, no database while presenting.
 Output goes to data/story/ (gitignored): it holds real attendee names, shortened for the projector.
 """
 
-import functools
-import http.server
 import json
-import shutil
 from pathlib import Path
 
 from datahere import graph, pipeline
 from datahere.schema import Note
-
-TEMPLATE = Path(__file__).with_name("story.html")
-
 
 def _short(name: str) -> str:
     """'Shelby Shipley' -> 'Shelby S.' (stage privacy)."""
@@ -68,11 +61,5 @@ def build(seller_url: str, event: str, out: Path, top: int = 10, note_person: st
     }
     out.mkdir(parents=True, exist_ok=True)
     (out / "story.json").write_text(json.dumps(story, indent=1))
-    shutil.copy(TEMPLATE, out / "index.html")
     return out
 
-
-def serve(out: Path, port: int = 8100) -> None:
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(out))
-    print(f"story mode: http://127.0.0.1:{port}")
-    http.server.ThreadingHTTPServer(("127.0.0.1", port), handler).serve_forever()

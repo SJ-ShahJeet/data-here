@@ -52,11 +52,23 @@
   button.primary { background:var(--acc); border-color:var(--acc); color:#121826; font-weight:700; }
   .nav { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; padding:16px 40px; background:linear-gradient(transparent, var(--bg) 40%); }
   .sent { color:var(--good); font-weight:600; margin-top:14px; display:none; }
+  form { display:grid; gap:20px; max-width:760px; margin-top:12px; }
+  label { display:grid; gap:8px; font-weight:600; }
+  label small { color:var(--mute); font-weight:400; font-size:15px; }
+  input[type=text], input[type=url], input[type=number] { font:inherit; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  input:focus { outline:2px solid var(--acc); outline-offset:1px; }
+  input[type=file] { color:var(--soft); }
+  .or { color:var(--mute); text-align:center; font-size:14px; letter-spacing:2px; }
+  .err { color:#FF8A8A; min-height:1.4em; }
+  .log { background:#0C111C; border:1px solid var(--line); border-radius:12px; padding:16px 18px; font-size:14px; color:var(--soft); max-height:340px; overflow:auto; white-space:pre-wrap; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid var(--line); border-top-color:var(--acc); border-radius:50%; animation:sp 0.8s linear infinite; vertical-align:-2px; margin-right:8px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation:none; } }
   @media (max-width: 700px) { main { padding:28px 16px 110px; } h1 { font-size:36px; } h2 { font-size:28px; } .row { grid-template-columns:32px 1fr 60px; } .path { margin-left:0; } }
 </style>
 </head>
 <body>
-<header><b>data-here</b><div class="dots" id="dots"></div><span class="mono" style="color:var(--mute);font-size:14px">story mode · offline</span></header>
+<header><b>data-here</b><div class="dots" id="dots"></div><button id="restart" style="visibility:hidden">New run</button></header>
 <main id="beat"></main>
 <div class="nav"><button id="prev">← Back</button><button class="primary" id="next">Next →</button></div>
 <script>
@@ -107,6 +119,7 @@ const beats = [
 ];
 
 function show(n) {
+  if (!S) return;
   i = Math.max(0, Math.min(beats.length - 1, n));
   document.getElementById('beat').innerHTML = beats[i]();
   document.getElementById('dots').innerHTML = beats.map((_, k) => `<span class="dot${k === i ? ' on' : ''}" onclick="show(${k})"></span>`).join('');
@@ -116,9 +129,52 @@ function show(n) {
 }
 document.getElementById('prev').onclick = () => show(i - 1);
 document.getElementById('next').onclick = () => show(i + 1);
-document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(i + 1); } if (e.key === 'ArrowLeft') show(i - 1); });
-fetch('story.json').then(r => r.json()).then(d => { S = d; show(0); })
-  .catch(() => { document.getElementById('beat').innerHTML = '<h2>story.json missing</h2><p class="lead">Run: datahere story &lt;seller_url&gt; &lt;event&gt;</p>'; });
+document.addEventListener('keydown', e => { if (!S || e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(i + 1); } if (e.key === 'ArrowLeft') show(i - 1); });
+const $ = id => document.getElementById(id);
+function chrome(on) {
+  for (const id of ['prev', 'next', 'dots']) $(id).style.visibility = on ? 'visible' : 'hidden';
+  $('restart').style.visibility = on ? 'visible' : 'hidden';
+}
+
+function showForm(err) {
+  S = null; chrome(false);
+  $('beat').innerHTML = `<div class="eyebrow">Story mode</div>
+    <h1>Who should you meet at your next event?</h1>
+    <p class="lead">Give us your company and the event. data-here reads the live web, connects it in a graph, and tells you who to talk to, and why.</p>
+    <form id="f">
+      <label>Your company website <input type="text" name="website" placeholder="forkastrestaurants.com" required></label>
+      <label>Event link <small>A public Luma event page. Only hosts and featured guests are public.</small>
+        <input type="url" name="event_url" placeholder="https://luma.com/your-event"></label>
+      <div class="or">OR</div>
+      <label>Attendee sheet <small>.xlsx or .csv with Name, Role, Company columns (e.g. the host’s export)</small>
+        <input type="file" name="sheet" accept=".xlsx,.csv"></label>
+      <label>Event name <small>Optional. Taken from the page or file name if empty.</small>
+        <input type="text" name="event_name" placeholder="Fast Casual Summit"></label>
+      <div class="err" id="err">${esc(err || '')}</div>
+      <div><button class="primary" type="submit">Find my people →</button></div>
+    </form>`;
+  $('f').onsubmit = async e => {
+    e.preventDefault();
+    $('err').textContent = '';
+    const r = await fetch('/api/run', { method: 'POST', body: new FormData(e.target) });
+    const d = await r.json();
+    if (!r.ok) { $('err').textContent = d.error || 'Something went wrong.'; return; }
+    poll(d.id, d.event);
+  };
+}
+
+async function poll(id, event) {
+  const d = await (await fetch(`/api/jobs/${id}`)).json();
+  if (d.status === 'error') return showForm(`Run failed: ${d.error}`);
+  if (d.status === 'done') { S = await (await fetch(`/api/jobs/${id}/story`)).json(); chrome(true); return show(0); }
+  $('beat').innerHTML = `<div class="eyebrow">Working</div><h2><span class="spin"></span>Reading ${esc(event)}</h2>
+    <p class="lead">Bright Data is reading websites, search results and LinkedIn; FalkorDB is connecting it. Repeat runs replay from cache.</p>
+    <div class="log mono">${d.log.map(esc).join('\n') || 'starting…'}</div>`;
+  setTimeout(() => poll(id, event), 1200);
+}
+
+$('restart').onclick = () => showForm();
+showForm();
 </script>
 </body>
 </html>

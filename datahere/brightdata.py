@@ -89,8 +89,17 @@ def _post(path: str, json_body=None, params=None, method: str = "POST", timeout:
 def fetch(url: str) -> str:
     """Web Unlocker: raw HTML of a public page."""
     zone = env("BRIGHTDATA_UNLOCKER_ZONE", "web_unlocker1")
-    return _cached("unlocker", {"zone": zone, "url": url},
-                   lambda: _post("/request", {"zone": zone, "url": url, "format": "raw"}).text)
+
+    def call():
+        try:
+            return _post("/request", {"zone": zone, "url": url, "format": "raw"}).text
+        except RuntimeError as e:
+            # cache the miss as an empty page: replays skip dead/slow sites instead of re-waiting on timeouts;
+            # delete the cache file to retry
+            print(f"  ! fetch failed, cached as empty: {url}: {e}")
+            return ""
+
+    return _cached("unlocker", {"zone": zone, "url": url}, call)
 
 
 def html_to_text(html: str, max_chars: int = 8000) -> str:

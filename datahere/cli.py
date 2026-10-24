@@ -54,12 +54,8 @@ def main() -> None:
     s.add_argument("--host", default="127.0.0.1")
     s.add_argument("--port", type=int, default=8000)
 
-    s = sub.add_parser("story", help="freeze a finished run into the offline story-mode page and serve it")
-    s.add_argument("seller_url")
-    s.add_argument("event")
-    s.add_argument("--out", default="data/story")
+    s = sub.add_parser("story", help="story-mode app: enter your website + an event, see who to meet and why")
     s.add_argument("--port", type=int, default=8100)
-    s.add_argument("--no-build", action="store_true", help="serve the existing snapshot (offline)")
 
     a = p.parse_args()
     match a.cmd:
@@ -81,12 +77,8 @@ def main() -> None:
         case "serve":
             return server.serve(http=a.http, port=a.port, host=a.host, sse=a.sse)
         case "story":
-            from pathlib import Path
-            from datahere import story
-            out_dir = Path(a.out)
-            if not a.no_build:
-                story.build(a.seller_url, a.event, out_dir)
-            return story.serve(out_dir, a.port)
+            from datahere import app
+            return app.serve(a.port)
     print(json.dumps(out, indent=2))
 
 

@@ -1,5 +1,6 @@
 """FalkorDB: the people graph, your memory, scoring, and the 'why' paths."""
 
+import functools
 import re
 
 from falkordb import FalkorDB
@@ -12,10 +13,14 @@ DEFAULT_ROLE_KEYWORDS = ("cfo", "vp", "operations", "president", "founder", "own
 INTENT_POINTS, INTENT_CAP = 1.5, 4.5
 
 
+@functools.cache
+def _db(url: str) -> FalkorDB:
+    return FalkorDB.from_url(url)  # one connection pool per URL, not one per query
+
+
 def _g():
     # Graph name read per call so tests can point GRAPH_NAME at a scratch graph.
-    db = FalkorDB.from_url(env("FALKORDB_URL", "redis://localhost:6379"))
-    return db.select_graph(env("GRAPH_NAME", "datahere"))
+    return _db(env("FALKORDB_URL", "redis://localhost:6379")).select_graph(env("GRAPH_NAME", "datahere"))
 
 
 def _q(cypher: str, **params) -> list[list]:
