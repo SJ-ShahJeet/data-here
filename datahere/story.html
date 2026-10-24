@@ -676,17 +676,18 @@ function showForm(err) {
   };
 }
 
-// progress: a step is done once its first log line appears (pipeline.py prints these)
-const STAGES = [['Reading your website', 'brightdata.com', 'Bright Data', /^seller:/],
-                ['Sorting every company in the room', 'brightdata.com', 'Bright Data', /^\[\d+\/\d+\] .+: \w+/],
-                ['Reading prospects’ LinkedIn posts', 'brightdata.com', 'Bright Data', /enriched/],
+// progress: each step starts when the log line that opens it appears (pipeline.py prints these);
+// a step is done once the next one has started
+const STAGES = [['Reading your website', 'brightdata.com', 'Bright Data', null],
+                ['Sorting every company in the room', 'brightdata.com', 'Bright Data', /^seller:/],
+                ['Reading prospects’ LinkedIn posts', 'brightdata.com', 'Bright Data', /^\[\d+\/\d+\] enriched/],
                 ['Scoring and connecting the graph', 'falkordb.com', 'FalkorDB', /building the story/]];
 let stage = 0;
 async function poll(id, event) {
   const d = await (await fetch(`/api/jobs/${id}`)).json();
   if (d.status === 'error') return showForm(`The run stopped: ${d.error}`);
   if (d.status === 'done') { history.replaceState(null, '', `?story=${id}`); return load(id); }
-  for (const line of d.log) STAGES.forEach((s, k) => { if (s[3].test(line)) stage = Math.max(stage, k + 1); });
+  for (const line of d.log) STAGES.forEach((s, k) => { if (s[3]?.test(line)) stage = Math.max(stage, k); });
   const open = document.querySelector('details')?.open ? ' open' : '';
   $('beat').innerHTML = `<h2>Reading the room at ${esc(event)}</h2>
     <p class="lede">An event we’ve read before replays in seconds. A new one runs live and takes a few minutes.</p>
