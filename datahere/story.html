@@ -412,7 +412,7 @@ const BEATS = [
       <ul class="key">
         <li><b>${S.room.companies}</b><span>companies on the list</span></li>
         <li><b class="s">${out}</b><span>crossed off: ${k.vendor || 0} vendors, plus investors, press and associations</span></li>
-        <li><b>${ops}</b><span>run restaurants and could buy</span></li>
+        <li><b>${ops}</b><span>are real buyers for what you sell</span></li>
         <li><b class="m">${S.top.length}</b><span>people on your shortlist, from ${picks.size} companies</span></li>
       </ul></div>
       <div class="sheet"><div class="sheet-head">${esc(S.event)}: companies attending <span>${S.room.companies}</span></div>
@@ -637,19 +637,19 @@ function showForm(err) {
     <h1>Know who to meet before you walk in.</h1>
     <p class="lede">Add your website and the event’s attendee list. You get a ranked shortlist, the reason behind each name, and a first email to approve.</p>
     <form id="f">
-      <label>Your company website <input type="text" name="website" placeholder="forkastrestaurants.com" required autocomplete="url"></label>
+      <label>Your company website <input type="text" name="website" placeholder="yourcompany.com" required autocomplete="url"></label>
       <div class="either">
         <label for="sheet">Attendee list
           <span class="drop"><input type="file" name="sheet" accept=".xlsx,.csv" id="sheet"><b id="sheetname">Choose a file</b><span>.xlsx or .csv</span></span></label>
         <em>or</em>
         <label>Public Luma link <input type="text" name="event_url" placeholder="luma.com/your-event" inputmode="url"></label>
       </div>
-      <label>Event name <small>Optional. We use the file or page name if empty.</small><input type="text" name="event_name" placeholder="Fast Casual Summit"></label>
+      <label>Event name <small>Optional. We use the file or page name if empty.</small><input type="text" name="event_name" placeholder="e.g. SaaStr Annual"></label>
       <p class="err" id="err" role="alert">${esc(err || '')}</p>
       <div><button class="btn" type="submit">Find my shortlist</button></div>
     </form>
     <div class="stack">${SPONSORS.map(([d, n, what]) => `<span>${logo(d, n, 18)}<b>${n}</b> ${what}</span>`).join('')}</div></div>
-    <div class="hero-badge" aria-hidden="true"><div class="lanyard"></div>${badge({ name:'Your next customer', title:'VP Operations, 120 locations', company:'Somewhere in this room', score:11.5,
+    <div class="hero-badge" aria-hidden="true"><div class="lanyard"></div>${badge({ name:'Your next customer', title:'VP Sales, buying this quarter', company:'Somewhere in this room', score:11.5,
       reasons:[{factor:'fit',points:6},{factor:'intent',points:3.5},{factor:'warmth',points:2}] }, 1)}</div></div>
     <section class="section" aria-labelledby="how"><h2 id="how">How it works</h2><div class="how">
       <div><div class="who">${logo('brightdata.com', 'Bright Data', 22)}Bright Data</div><h3><span>1</span>Read</h3>
