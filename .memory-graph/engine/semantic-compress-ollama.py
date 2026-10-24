@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+"""Semantic memory compression via local Ollama (optional per-repo).
+
+Reads .memory-graph/ollama.yaml when enabled: true.
+Triggered by session-end.sh when memory/.semantic-pending exists.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.request
+from datetime import date
+from pathlib import Path
+
+DEFAULT_CONFIG = {
+    "enabled": False,
+    "host": "http://127.0.0.1:11434",
+    "model": "llama3.2:3b",
+    "max_archive_chars": 8000,
+    "max_archive_files": 2,
+    "timeout": 120,
+    "temperature": 0,
+}
+
+
+_ENGINE = Path(__file__).resolve().parent
+if str(_ENGINE) not in sys.path:
+    sys.path.insert(0, str(_ENGINE))
+
+import mg_config as mg
+
+
+def repo_root() -> Path:
+    root = os.environ.get("REPO_ROOT")
+    return Path(root) if root else Path.cwd()
+
+
+def load_config(root: Path) -> dict | None:
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / "mg_config.py"
+    spec = importlib.util.spec_from_file_location("mg_config", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    cfg = mod.load_ollama_config(root)
+    if cfg:
+        return cfg
+    return None
+
+
+def write_status(root: Path, ok: bool, message: str) -> None:
+    mem = mg.memory_dir(root)
+    mem.mkdir(parents=True, exist_ok=True)
+    path = mem / ".semantic-ollama-status"
+    lines = [
+        f"ok: {'true' if ok else 'false'}",
+        f"date: {date.today().isoformat()}",
+        f"message: \"{message.replace(chr(34), chr(39))}\"",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    err_path = mem / ".semantic-ollama-last-error"
+    if ok:
+        err_path.unlink(missing_ok=True)
+    else:
+        err_path.write_text(message + "\n", encoding="utf-8")
+
+
+def gather_source(root: Path, max_archive_chars: int, max_archive_files: int) -> str:
+    parts: list[str] = []
+    state = mg.memory_dir(root) / "state.yaml"
+    if state.is_file():
+        parts.append("=== memory/state.yaml ===\n" + state.read_text(encoding="utf-8", errors="replace"))
+
+    pending = mg.memory_dir(root) / ".semantic-pending"
+    if pending.is_file():
+        parts.append("=== memory/.semantic-pending ===\n" + pending.read_text(encoding="utf-8", errors="replace"))
+
+    archive_dir = mg.sessions_dir(root) / "archive"
+    if archive_dir.is_dir():
+        budget = max_archive_chars
+        chunks: list[str] = []
+        for path in sorted(archive_dir.glob("*.yaml"), reverse=True)[:max_archive_files]:
+            if budget <= 0:
+                break
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if len(text) > budget:
+                text = text[:budget] + "\n... [truncated]"
+            chunks.append(f"=== {path.name} ===\n{text}")
+            budget -= len(text)
+        if chunks:
+            parts.append("=== sessions/archive/ (most recent only) ===\n" + "\n\n".join(chunks))
+
+    sessions = sorted(mg.sessions_dir(root).glob("*.md"), reverse=True)[:3]
+    if sessions:
+        today_parts = []
+        for p in sessions:
+            today_parts.append(f"--- {p.name} ---\n" + p.read_text(encoding="utf-8", errors="replace")[:1500])
+        parts.append("=== sessions/ (today) ===\n" + "\n\n".join(today_parts))
+
+    return "\n\n".join(parts)
+
+
+SYSTEM_PROMPT = """You compress project memory for a coding agent.
+
+CRITICAL: Reply with ONLY valid YAML. No markdown fences, no prose, no explanation before or after.
+
+Rules:
+- Max 15 lines of YAML fields (comments allowed with #)
+- Merge duplicate open items; drop resolved/stale items
+- Keep god node names if still relevant
+- recent_context: one concise line on current project state
+- Do not invent facts not in the source
+
+Required shape:
+updated: YYYY-MM-DD
+sessions_active: <number or 0>
+open:
+  - "item"
+blocked: []
+god_nodes_recent: []
+recent_context:
+  - "one line summary"
+"""
+
+
+def build_user_message(source: str) -> str:
+    return f"Distill the following source into memory/state.yaml. Set updated to {date.today().isoformat()}.\n\nSOURCE:\n{source}"
+
+
+def ollama_chat(host: str, model: str, system: str, user: str, timeout: int, temperature: float) -> str:
+    url = host.rstrip("/") + "/api/chat"
+    body = json.dumps(
+        {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "stream": False,
+            "options": {"temperature": temperature},
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    msg = data.get("message") or {}
+    return (msg.get("content") or "").strip()
+
+
+def extract_yaml(text: str) -> str:
+    text = text.strip()
+    fence = re.search(r"```(?:yaml)?\s*\n([\s\S]*?)```", text)
+    if fence:
+        text = fence.group(1).strip()
+    # Drop leading prose before first key:
+    m = re.search(r"(?m)^(updated:|#)", text)
+    if m and m.start() > 0:
+        text = text[m.start() :].strip()
+    return text
+
+
+def validate_output(yaml_text: str) -> bool:
+    return bool(re.search(r"^updated:\s*\S+", yaml_text, re.M)) and "open:" in yaml_text
+
+
+def run(root: Path, dry_run: bool = False) -> int:
+    cfg = load_config(root)
+    if not cfg:
+        print("Ollama semantic compress not enabled for this repo.", file=sys.stderr)
+        print("Run: bash scripts/enable-semantic-ollama.sh", file=sys.stderr)
+        return 1
+
+    pending = mg.memory_dir(root) / ".semantic-pending"
+    if not pending.is_file():
+        write_status(root, True, "nothing pending")
+        return 0
+
+    source = gather_source(
+        root,
+        int(cfg["max_archive_chars"]),
+        int(cfg.get("max_archive_files") or 2),
+    )
+    user_msg = build_user_message(source)
+
+    if dry_run:
+        print(f"--- system ({len(SYSTEM_PROMPT)} chars) ---\n{SYSTEM_PROMPT[:800]}\n")
+        print(f"--- user ({len(user_msg)} chars) ---\n{user_msg[:2000]}" + ("\n..." if len(user_msg) > 2000 else ""))
+        return 0
+
+    try:
+        raw = ollama_chat(
+            cfg["host"],
+            cfg["model"],
+            SYSTEM_PROMPT,
+            user_msg,
+            int(cfg["timeout"]),
+            float(cfg.get("temperature", 0)),
+        )
+    except urllib.error.URLError as e:
+        msg = f"Ollama unreachable at {cfg['host']}: {e}. Is Ollama running? (ollama serve)"
+        write_status(root, False, msg)
+        print(msg, file=sys.stderr)
+        return 2
+
+    yaml_out = extract_yaml(raw)
+    if not validate_output(yaml_out):
+        msg = "Ollama response was not valid state.yaml — try a larger model or run semantic-compress skill"
+        err_detail = f"{msg}\n\n--- raw response ---\n{raw[:3000]}"
+        write_status(root, False, err_detail)
+        print(msg, file=sys.stderr)
+        print("--- raw response ---", file=sys.stderr)
+        print(raw[:1500], file=sys.stderr)
+        return 3
+
+    header = (
+        "# Auto-generated by semantic-compress-ollama.py — distilled working memory.\n"
+        "# Full history → sessions/archive/\n"
+    )
+    (mg.memory_dir(root) / "state.yaml").write_text(header + yaml_out.strip() + "\n", encoding="utf-8")
+    pending.unlink(missing_ok=True)
+    (mg.memory_dir(root) / ".semantic-last-run").write_text(date.today().isoformat() + "\n", encoding="utf-8")
+    write_status(root, True, f"compressed via ollama/{cfg['model']}")
+    return 0
+
+
+def check_ollama(host: str, model: str, timeout: int = 5) -> tuple[bool, str]:
+    try:
+        url = host.rstrip("/") + "/api/tags"
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        names = {m.get("name", "") for m in data.get("models", [])}
+        # Ollama may report "llama3.2:3b" or with latest suffix
+        if model in names or any(n.startswith(model.split(":")[0]) for n in names):
+            return True, f"Ollama OK — model available ({model})"
+        return False, f"Ollama running but model '{model}' not found. Run: ollama pull {model}"
+    except urllib.error.URLError as e:
+        return False, f"Ollama not reachable at {host}: {e}"
+
+
+def main() -> int:
+    root = repo_root()
+    if len(sys.argv) > 1 and sys.argv[1] == "--check":
+        cfg = load_config(root)
+        if not cfg:
+            example = root / ".memory-graph" / "ollama.example.yaml"
+            if example.is_file():
+                print("Ollama not enabled. Run: bash scripts/enable-semantic-ollama.sh")
+            else:
+                print("No .memory-graph/ollama.yaml — optional per-repo feature.")
+            return 1
+        ok, msg = check_ollama(cfg["host"], cfg["model"])
+        print(msg)
+        return 0 if ok else 2
+
+    if len(sys.argv) > 1 and sys.argv[1] == "--dry-run":
+        cfg = load_config(root)
+        if not cfg:
+            print("Enable Ollama first: bash scripts/enable-semantic-ollama.sh", file=sys.stderr)
+            return 1
+        return run(root, dry_run=True)
+
+    return run(root, dry_run=False)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

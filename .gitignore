@@ -1,0 +1,121 @@
+# memory-graph, consolidated layout — everything the tool owns lives here.
+# The pre-consolidation rules further down stay in place so a repo part-way
+# through `upgrade-memory-graph.sh --migrate-layout` keeps both sides ignored.
+.memory-graph/sessions/
+.memory-graph/memory.md
+.memory-graph/memory/state.yaml
+.memory-graph/memory/.semantic-last-run
+.memory-graph/memory/.tool-brief/
+.memory-graph/memory/.tool-brief-last.txt
+.memory-graph/memory/.compression-log.jsonl
+.memory-graph/memory/.agent-brief.yaml
+.memory-graph/memory/.agent-brief-status
+.memory-graph/memory/.context.yaml
+.memory-graph/memory/.context-meta
+.memory-graph/memory/.context-status
+.memory-graph/memory/.graph-scout.yaml
+.memory-graph/memory/.graph-scout-status
+.memory-graph/memory/.graph-scout-last-error
+.memory-graph/memory/.semantic-pending
+.memory-graph/memory/.semantic-ollama-status
+.memory-graph/memory/.semantic-ollama-last-error
+.memory-graph/graphify-out/
+.memory-graph/dashboard/node_modules/
+.memory-graph/dashboard/.next/
+
+# ── pre-consolidation layout (data still at the repo root) ──────────────────
+
+# graphify working files (keep outputs)
+graphify-out/.graphify_python
+graphify-out/.graphify_detect.json
+graphify-out/.graphify_extract.json
+graphify-out/.graphify_ast.json
+graphify-out/.graphify_semantic.json
+graphify-out/.graphify_analysis.json
+graphify-out/.graphify_labels.json
+graphify-out/.graphify_incremental.json
+graphify-out/.graphify_old.json
+graphify-out/.graphify_chunk_*.json
+graphify-out/.graphify_cached.json
+graphify-out/.graphify_transcripts.json
+graphify-out/.graphify_uncached.txt
+graphify-out/.needs_update
+graphify-out/cache/
+
+# Keep these graphify outputs
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md
+
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+.memory-graph/ollama.yaml
+!.memory-graph/ollama.example.yaml
+.memory-graph/config.yaml
+!.memory-graph/config.example.yaml
+.memory-graph/changed-files
+.memory-graph/toolkit-source
+
+# memory-graph runtime (local)
+memory/.semantic-pending
+memory/.semantic-ollama-status
+memory/.semantic-ollama-last-error
+memory/.graph-scout.yaml
+memory/.graph-scout-status
+memory/.graph-scout-last-error
+memory/.agent-brief.yaml
+memory/.agent-brief-status
+memory/.context.yaml
+memory/.context-meta
+memory/.context-status
+# pre-multi-host names, still ignored so old checkouts stay clean
+memory/.cursor-context.yaml
+memory/.cursor-context-meta
+memory/.cursor-context-status
+memory/.tool-brief/
+memory/.tool-brief-last.txt
+memory/.compression-log.jsonl
+.memory-graph-semantic-auto
+
+# Node / Next.js (dashboard)
+node_modules/
+.next/
+
+*.tsbuildinfo
+
+# eval datasets (large, fetched on demand)
+.memory-graph/eval-data/
+
+# Session transcripts and working memory stay local — they are a record of one
+# person's sessions, not project source.
+sessions/
+memory.md
+memory/state.yaml
+memory/.semantic-last-run
+memory/nodes.json
+
+# Generated graph artifacts. Rebuild after cloning with:
+#   python3 .memory-graph/engine/graph-build.py .
+graphify-out/
+
+# recursive-research store (findings, sessions, graph); local data, never committed
+research-graph/
+
+# impeccable design skill, installed per machine for each agent; local setup, never committed
+.agents/skills/impeccable/
+.claude/skills/impeccable/
+.cursor/skills/impeccable/
+.github/skills/impeccable/
+.cursor/agents/impeccable-*
+.github/agents/impeccable-*
+.github/hooks/impeccable.json
+.codex/hooks.json
+.impeccable/
+dashboard/.impeccable/
+
+# per-machine agent settings
+.claude/settings.local.json

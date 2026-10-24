@@ -1,0 +1,544 @@
+/* Nocturne's own styles.css opens with a Google Fonts @import. It is dropped
+   here deliberately: this dashboard must render with no network access (the
+   rule the vanilla build set in decision #9, and which test_static_ui.py used
+   to enforce). Inter is used when the host already has it; otherwise the
+   --font-body/--font-heading stacks fall through to system-ui. */
+@import "tailwindcss";
+
+:root {
+  --background: #161826;
+  --foreground: #e9e9ed;
+  --card: #232532;
+  --card-foreground: #e9e9ed;
+  --popover: #232532;
+  --popover-foreground: #e9e9ed;
+  --primary: #9184d9;
+  --primary-foreground: #161826;
+  --secondary: #3f424d;
+  --secondary-foreground: #e9e9ed;
+  --muted: #292b31;
+  --muted-foreground: #9397ab;
+  --accent: #a7a1db;
+  --accent-foreground: #161826;
+  /* shadcn expects a --destructive, but Nocturne defines no red. Its critical
+     treatment is neutral-500 on neutral-800 with weight 600, so destructive
+     borrows neutral-500 rather than importing a hue the system never had.
+     Nothing currently consumes this; it exists so shadcn components added
+     later inherit an on-system value instead of their default red. */
+  --destructive: #9397ab;
+  --destructive-foreground: #161826;
+  --border: #3f424d;
+  --input: #3f424d;
+  --ring: #9184d9;
+  --radius: 8px;
+
+  /* Severity edges. Nocturne has no red and no amber anywhere — its own
+     pillStyle() separates all four severities using only the accent and the
+     neutral ramp, varying border, background and weight instead of hue. The
+     first build invented #d9c184 and #d98499, which put the tile borders
+     off-system while the .pill-* classes below stayed on it.
+
+     The ordering here is deliberate and is not pillStyle's. pillStyle is a
+     general-purpose scale where the accent marks the *good* state; on a surface
+     whose whole job is spotting what is stale or stuck, that points the loudest
+     colour at the reading you never need to act on. So the ramp is inverted for
+     edges: the accent marks trouble, the neutral ramp marks health, and idle is
+     the quietest thing on the row. Still no hue the system never defined —
+     the axis is which ramp, not which colour. */
+  --severity-good: #75798c;   /* --color-neutral-600 — healthy recedes */
+  --severity-warn: #9184d9;   /* --color-accent */
+  --severity-bad: #9184d9;    /* --color-accent, distinguished by the pill's weight */
+  --severity-idle: #595d6c;   /* --color-neutral-700 — quietest */
+
+  --chart-1: #d2cefd;
+  --chart-2: #b5abfc;
+  --chart-3: #968ae0;
+  --chart-4: #796cbf;
+  --chart-5: #5d5294;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* Nocturne's own scale: sm 4 / md 8 / lg 14. This block previously aliased
+     --radius-lg to --radius (8px), so the `rounded-lg` utility disagreed with
+     `var(--radius-lg)` used in plain CSS further down. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  margin: 0;
+}
+
+/* ── Nocturne design system (imported from Claude Design project) ─────────── */
+
+:root {
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-2: #a7a1db;
+  --color-divider: color-mix(in srgb, #e9e9ed 16%, transparent);
+
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  --color-accent-2-100: #f5f4ff;
+  --color-accent-2-200: #e7e5fe;
+  --color-accent-2-300: #d2cefd;
+  --color-accent-2-400: #b5afe8;
+  --color-accent-2-500: #9690c9;
+  --color-accent-2-600: #7972a9;
+  --color-accent-2-700: #5c5783;
+  --color-accent-2-800: #423e5d;
+  --color-accent-2-900: #2b293a;
+
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-heading-weight: 500;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 0 0 1px #3f424d;
+  --shadow-md: 0 0 0 1px #595d6c, 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 0 0 1px #9397ab, 0 16px 40px rgba(0, 0, 0, 0.65);
+  --shadow-neon: 0 0 0 1px rgba(145, 132, 217, 0.55), 0 0 12px rgba(145, 132, 217, 0.35),
+    0 0 32px rgba(145, 132, 217, 0.18);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--space-2);
+}
+h1 { font-size: 42px; }
+h2 { font-size: 32px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+p { margin: 0 0 var(--space-3); }
+a { color: var(--color-accent); text-underline-offset: 3px; }
+a:hover { color: var(--color-accent-400); }
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--color-neutral-800); border-radius: 4px; }
+
+/* — rules —
+   A Nocturne signature: freestanding rules fade to transparent over 48px at
+   both ends (one deck baseline unit) instead of stopping cleanly. Box
+   outlines and in-control separators stay solid. The .table row rules below
+   are the same idea applied per row. */
+.hr {
+  height: 1px;
+  border: 0;
+  margin: var(--space-4) 0;
+  background: linear-gradient(to right,
+    transparent, var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px), transparent);
+}
+.tag-accent-2 { background: var(--color-accent-2-800); color: var(--color-accent-2-100); }
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+
+/* — buttons — */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border-radius: var(--radius-md);
+}
+.btn svg { display: block; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { color: var(--color-accent); border-color: var(--color-accent); }
+.btn-primary:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.btn-secondary { border-color: var(--color-divider); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+
+/* — forms — */
+.field > label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+.seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
+.seg-opt[data-active="true"] { color: var(--color-accent); box-shadow: inset 0 0 0 1px var(--color-accent); }
+.seg-opt:not([data-active="true"]):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+
+/* — cards — */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+.card-kicker {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.card-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 17px;
+  line-height: 1.2;
+}
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; flex: 1; }
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+
+/* — tags & status pills — */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: calc(var(--radius-md) * 0.75);
+}
+.tag-accent { background: var(--color-accent-800); color: var(--color-accent-100); }
+.tag-neutral { background: var(--color-neutral-800); color: var(--color-neutral-100); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+.pill-good {
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+.pill-warning { color: var(--color-text); border: 1px solid var(--color-accent); background: transparent; }
+.pill-critical {
+  color: var(--color-text);
+  border: 1px solid var(--color-neutral-500);
+  background: var(--color-neutral-800);
+  font-weight: 600;
+}
+.pill-neutral { color: var(--color-text); opacity: 0.6; border: 1px solid var(--color-neutral-700); }
+
+/* — tables — */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: var(--space-2);
+  border-bottom: 1px solid transparent;
+}
+.table td { padding: var(--space-2); border-bottom: 1px solid transparent; }
+.table thead tr {
+  background: linear-gradient(to right,
+      transparent, var(--color-divider) 48px,
+      var(--color-divider) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+.table tbody tr {
+  background: linear-gradient(to right,
+      transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px,
+      color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+.table tbody tr:hover {
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-text) 4%, transparent),
+      color-mix(in srgb, var(--color-text) 4%, transparent)) no-repeat 0 0 / 100% 100%,
+    linear-gradient(to right,
+      transparent, color-mix(in srgb, var(--color-text) 8%, transparent) 48px,
+      color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px), transparent) no-repeat bottom / 100% 1px;
+}
+
+/* — dashboard layout — */
+.mg-page {
+  min-height: 100vh;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  padding: 36px 44px 60px;
+}
+.mg-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+.mg-cols {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+  align-items: start;
+}
+.mg-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); align-items: start; }
+.mg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); align-items: start; }
+.mg-panel h2 {
+  font-size: 20px;
+  display: inline;
+  margin: 0;
+}
+.mg-panel-head { margin-bottom: var(--space-3); }
+/* These four carried `opacity: 0.45`–`0.5`, which composited to 3.91–4.25:1 on the
+   card surface — under the 4.5:1 this project holds itself to, and the very text
+   that annotates where each number came from. Tinting from the foreground holds
+   the same recessive read without fading it through the background. */
+.mg-annot {
+  font-size: 11px;
+  font-weight: 400;
+  color: color-mix(in srgb, var(--color-text) 68%, transparent);
+  margin-left: var(--space-2);
+}
+.mg-list-card { padding: 0; overflow: hidden; gap: 0; }
+.mg-list-head {
+  padding: var(--space-3) var(--space-4);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 68%, transparent);
+  border-bottom: 1px solid var(--color-divider);
+}
+.mg-list-row {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.mg-list-row:last-child { border-bottom: none; }
+.mg-list-none {
+  padding: var(--space-4);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 68%, transparent);
+}
+.mg-check {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 4px;
+  border: 1px solid var(--color-neutral-600);
+  background: transparent;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+.mg-check[data-checked="true"] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+.mg-section-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 68%, transparent);
+  margin: var(--space-3) 0 var(--space-1);
+}
+.mg-mono { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+
+/* Secondary label text. Replaces inline `opacity: 0.5`, which composited with
+   ancestor opacity down to 3.4–4.25:1 against the surface — under the 4.5:1 the
+   project holds itself to. Tinting from the foreground instead of fading it keeps
+   the same recessive read at ~6:1. */
+.mg-quiet { color: color-mix(in srgb, var(--color-text) 68%, transparent); }
+
+/* — stat tile: what to do about it —
+   A tile that reports "40d · Critical" and stops there cannot tell you whether the
+   number is bad because you were away or because the hook stopped firing, which is
+   the one question the surface exists to answer. Only non-good tiles carry this. */
+.mg-tile-action {
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-3);
+  font-size: 12px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  border-top: 1px solid var(--color-divider);
+}
+
+/* — IA zones —
+   The four zones were grouped in markup but had no visual boundary: transparent
+   ground, no rule, and a 22.4px gap between zones against 11.2–16.8px inside them.
+   Proximity cannot signal grouping when the two gaps are that close, so the page
+   read as one flat scroll with headings in it. The separator is Nocturne's own
+   end-fading rule — the treatment .hr and the table row rules already use — rather
+   than a border style the system does not have. */
+.mg-zone { margin-bottom: var(--space-8); }
+.mg-zone:last-child { margin-bottom: 0; }
+.mg-zone + .mg-zone {
+  padding-top: calc(var(--space-8) * 2);
+  background: linear-gradient(to right,
+    transparent, var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px), transparent) no-repeat top / 100% 1px;
+}
+/* More space above a heading than below it: the label belongs to what follows. */
+.mg-zone > h3 { margin: 0 0 var(--space-6); }
+
+@media (max-width: 1100px) {
+  .mg-page { padding: 24px 20px 48px; }
+  .mg-tiles { grid-template-columns: repeat(2, 1fr); }
+  .mg-cols { grid-template-columns: 1fr; }
+  .mg-grid-3 { grid-template-columns: 1fr; }
+  .mg-grid-2 { grid-template-columns: 1fr; }
+}
+
+@keyframes mg-shimmer {
+  from { background-position: -150% 0; }
+  to   { background-position: 250% 0; }
+}
+
+@keyframes mg-cascade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mg-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes mg-chart-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+
+[data-shimmering="true"] {
+  background-image: linear-gradient(100deg, var(--foreground) 40%, var(--primary) 50%, var(--foreground) 60%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: mg-shimmer 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+[data-dimmed="true"] {
+  opacity: 0.35;
+  transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  [data-shimmering="true"] {
+    animation: none !important;
+    background-image: none;
+    color: var(--foreground);
+  }
+}

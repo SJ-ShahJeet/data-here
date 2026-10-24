@@ -1,0 +1,35 @@
+memory-graph — code graph engine (.memory-graph/engine/mg_graph/)
+=================================================================
+
+Provenance
+----------
+
+This package replaces the external `graphifyy` package (Graphify Labs,
+https://github.com/Graphify-Labs/graphify, dual Apache-2.0 / MIT), which
+memory-graph depended on up to and including version 0.9.36.
+
+**No graphify source code was copied.** `mg_graph/` is an independent
+reimplementation written against the same output contract. The two differ
+structurally: graphify dispatches through a per-language extractor registry
+with caching and manifest/MCP ingestion; `mg_graph/extract.py` drives
+tree-sitter directly and supports Python, TypeScript and TSX only.
+
+What is deliberately compatible
+-------------------------------
+
+- The output path `graphify-out/graph.json` and its networkx node-link shape
+  (`nodes[{id, label, community, file_type, source_file, ...}]`,
+  `links[{source, target, relation, confidence, ...}]`). Renaming it would
+  break the dashboard and `tests/test_adapters.py`.
+- `normalize_id()` semantics, so node ids stay stable across the switchover.
+
+What was intentionally dropped
+------------------------------
+
+LLM-written `GRAPH_REPORT.md`; multi-modal ingestion (images, video, PDFs,
+URLs); Neo4j / FalkorDB / GraphML / SVG exporters; the MCP server; `--watch`,
+`--obsidian` and `--wiki` modes; and Leiden clustering (networkx Louvain was
+already the effective fallback, since leidenalg was never installed).
+
+If code is vendored from graphify in future, add its Apache-2.0 licence header
+to the file and record the upstream commit here.

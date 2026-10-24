@@ -1,0 +1,71 @@
+# memory-graph — unified per-repo config (copy to config.yaml).
+# config.yaml is gitignored — one file per project.
+#
+# Profiles apply defaults; core/ and ollama/ override. Legacy flat keys still work.
+
+profile: standard   # standard | token-first | minimal
+
+core:
+  # Change tracking: auto | git | cursor (ledger only)
+  track: auto
+  git_noise_threshold: 25
+  scope_max: 40
+
+  # Session capture
+  session_fill_from_transcript: true
+  session_context_max_chars: 600
+
+  # Archive richness
+  archive_why_fields: true
+  archive_enrich_on_move: true
+
+  # Session gate
+  session_min_files: 3
+
+  # Graph + brief
+  graph_summary_on_stop: true
+  graph_scout_local: false
+  graph_scout_budget: 500
+  graph_scout_summarize: false
+  graph_scout_on_stop: true
+
+  # Token savers
+  agent_brief: true
+  agent_brief_max_lines: 45
+  # Memory nodes injected into the brief (memory/nodes.json → ## Memory nodes)
+  # inject_budget_tokens: hard token ceiling for injected nodes
+  # inject_kinds: comma list of kinds; unknown/empty = all kinds
+  # inject_min_weight: floor — nodes below this weight are never injected
+  # decay_half_life_days: days for an unreviewed node's weight to halve
+  inject_budget_tokens: 6000
+  inject_kinds: Decision,Constraint,Open thread,Dependency,Test/CI fact
+  inject_min_weight: 0.3
+  decay_half_life_days: 30
+  tool_output_compress: true
+  tool_output_min_chars: 6000
+  tool_output_max_summary: 1200
+
+  # Ollama context gateway (precompute at stop, inject at sessionStart)
+  ollama_context_on_start: false
+  ollama_context_max_lines: 15
+  ollama_context_cache_mins: 30
+  ollama_context_max_chars: 1200
+
+ollama:
+  enabled: false
+  host: http://127.0.0.1:11434
+  model: llama3.2:3b
+  max_archive_chars: 12000
+  max_archive_files: 2
+  timeout: 120
+  temperature: 0
+  archive_monthly_summary: true
+
+# Profile presets (applied first, then core/ overrides):
+#   standard     — agent brief + structural compression
+#   token-first  — Ollama gateway on, graph scout off
+#   minimal      — hooks only, no brief/tool compress
+
+# Include memory-graph's own source under .memory-graph/ in the code graph.
+# Only the memory-graph toolkit repo itself wants this.
+# graph_include_self: false
