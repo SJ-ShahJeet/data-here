@@ -5,7 +5,8 @@
     "2026-10-24-3.md",
     "2026-10-24-4.md",
     "2026-10-24-5.md",
-    "2026-10-24-6.md"
+    "2026-10-24-6.md",
+    "2026-10-24-7.md"
   ],
   "nodes": [
     {
@@ -81,16 +82,16 @@
       "weight": 0.6
     },
     {
-      "base_weight": 0.5,
+      "base_weight": 0.6,
       "claim": "god nodes in blast radius: pipeline.py (CRITICAL)",
       "first_seen": "2026-10-24",
       "id": "n-2d562cd841",
       "kind": "Dependency",
       "last_seen": "2026-10-24",
-      "seen_count": 1,
+      "seen_count": 2,
       "source_session": "2026-10-24-4.md",
       "status": "unreviewed",
-      "weight": 0.5
+      "weight": 0.6
     },
     {
       "base_weight": 0.6,
@@ -137,6 +138,18 @@
       "last_seen": "2026-10-24",
       "seen_count": 1,
       "source_session": "2026-10-24-6.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "community 3: pipeline.py",
+      "first_seen": "2026-10-24",
+      "id": "n-edf5fb3738",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-7.md",
       "status": "unreviewed",
       "weight": 0.5
     }

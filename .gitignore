@@ -128,3 +128,6 @@ data/
 .env
 .venv/
 cache/
+
+# browser automation screenshots
+.playwright-mcp/

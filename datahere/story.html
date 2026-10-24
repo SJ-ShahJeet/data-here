@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>data-here · story mode</title>
+<style>
+  :root { --bg:#121826; --panel:#1E2638; --line:#2C3650; --ink:#F6F4EF; --soft:#C9D2E3; --mute:#8A96AD; --acc:#FF7A45; --good:#5BC489; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:20px 40px; border-bottom:1px solid var(--line); }
+  header b { font-size:22px; letter-spacing:-0.5px; }
+  .dots { display:flex; gap:8px; }
+  .dot { width:10px; height:10px; border-radius:50%; background:var(--line); cursor:pointer; }
+  .dot.on { background:var(--acc); }
+  main { max-width:1180px; margin:0 auto; padding:48px 40px 120px; }
+  .eyebrow { color:var(--acc); font-size:14px; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px; }
+  h1 { font-size:56px; line-height:1.08; margin:0 0 20px; letter-spacing:-1.5px; }
+  h2 { font-size:40px; line-height:1.1; margin:0 0 28px; letter-spacing:-1px; }
+  p.lead { font-size:22px; color:var(--soft); max-width:900px; margin:0 0 28px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 20px; }
+  .chip { background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 14px; font-size:16px; color:var(--soft); }
+  .chip.acc { border-color:var(--acc); color:var(--ink); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; }
+  .big { font-size:64px; font-weight:700; line-height:1; color:var(--acc); }
+  .label { color:var(--mute); font-size:14px; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; }
+  .bar { display:flex; height:28px; border-radius:8px; overflow:hidden; margin:18px 0 10px; }
+  .bar span { display:block; height:100%; }
+  .legend { display:flex; flex-wrap:wrap; gap:18px; color:var(--soft); font-size:15px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .row { display:grid; grid-template-columns:44px 1fr 90px; gap:16px; align-items:start; padding:16px 18px; border:1px solid var(--line); border-radius:14px; background:var(--panel); margin-bottom:10px; cursor:pointer; }
+  .row:hover { border-color:var(--acc); }
+  .rank { font-size:28px; font-weight:700; color:var(--mute); }
+  .who b { font-size:20px; } .who div { color:var(--soft); font-size:16px; }
+  .score { text-align:right; font-size:26px; font-weight:700; color:var(--acc); }
+  .reasons { grid-column:2 / 4; display:none; margin-top:6px; }
+  .row.open .reasons { display:block; }
+  .reason { margin:8px 0; }
+  .reason .f { display:inline-block; min-width:128px; color:var(--acc); font-size:14px; }
+  .path { color:var(--mute); font-size:14px; margin-left:132px; }
+  .hook { margin-top:10px; padding:12px 14px; border-left:3px solid var(--acc); background:#18203A; color:var(--soft); font-style:italic; }
+  .warm { color:var(--good); font-weight:600; }
+  .note { font-size:24px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px 24px; margin-bottom:18px; }
+  .move { display:flex; align-items:center; gap:24px; font-size:28px; margin:24px 0; }
+  .move .big { font-size:80px; }
+  .email { background:#F6F4EF; color:#121826; border-radius:16px; padding:28px 32px; max-width:860px; white-space:pre-wrap; font-size:18px; }
+  .email .meta { color:#4A5568; font-size:15px; margin-bottom:14px; white-space:normal; }
+  .approve { display:flex; gap:12px; margin-top:20px; }
+  button { font:inherit; border-radius:10px; padding:10px 22px; border:1px solid var(--line); background:var(--panel); color:var(--ink); cursor:pointer; }
+  button.primary { background:var(--acc); border-color:var(--acc); color:#121826; font-weight:700; }
+  .nav { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; padding:16px 40px; background:linear-gradient(transparent, var(--bg) 40%); }
+  .sent { color:var(--good); font-weight:600; margin-top:14px; display:none; }
+  @media (max-width: 700px) { main { padding:28px 16px 110px; } h1 { font-size:36px; } h2 { font-size:28px; } .row { grid-template-columns:32px 1fr 60px; } .path { margin-left:0; } }
+</style>
+</head>
+<body>
+<header><b>data-here</b><div class="dots" id="dots"></div><span class="mono" style="color:var(--mute);font-size:14px">story mode · offline</span></header>
+<main id="beat"></main>
+<div class="nav"><button id="prev">← Back</button><button class="primary" id="next">Next →</button></div>
+<script>
+const KIND_COLORS = { operator:'#FF7A45', vendor:'#4C8DFF', investor:'#B07CFF', association:'#5BC489', media:'#E8C547', other:'#56607A' };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S, i = 0;
+
+const reasonsHtml = m => m.reasons.map(r =>
+  `<div class="reason"><span class="f mono">${esc(r.factor)} +${r.points}</span>${esc(r.text)}</div>
+   <div class="path mono">${r.path.map(esc).join(' → ')}</div>`).join('')
+  + (m.warm_intro ? `<div class="reason warm">Warm intro: ${esc(m.warm_intro)}</div>` : '')
+  + (m.hook ? `<div class="hook">“${esc(m.hook.slice(0, 260))}${m.hook.length > 260 ? '…' : ''}”</div>` : '');
+
+const row = (m, n, open) => `<div class="row${open ? ' open' : ''}" onclick="this.classList.toggle('open')">
+  <div class="rank">${n}</div>
+  <div class="who"><b>${esc(m.name)}</b>${m.warm_intro ? ' <span class="warm">· warm intro</span>' : ''}<div>${esc(m.title)} · ${esc(m.company)}</div></div>
+  <div class="score">${m.score}</div><div class="reasons">${reasonsHtml(m)}</div></div>`;
+
+const beats = [
+  () => `<div class="eyebrow">${esc(S.event)}</div>
+    <h1>Who should ${esc(S.seller.name)} meet here, and why?</h1>
+    <p class="lead">${S.room.people} attendees. One sheet. data-here reads the live web with Bright Data, connects it in FalkorDB, and an agent on TrueForge tells you who to talk to, with the evidence.</p>`,
+  () => { const icp = S.seller.icp; return `<div class="eyebrow">1 · Understand you</div>
+    <h2>${esc(S.seller.url)}</h2><p class="lead">${esc(S.seller.summary)}</p>
+    <div class="label">Segments</div><div class="chips">${icp.segments.map(s => `<span class="chip acc">${esc(s)}</span>`).join('')}</div>
+    <div class="label">Buyers</div><div class="chips">${icp.buyer_roles.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>
+    <div class="label">Pains we listen for</div><div class="chips">${icp.pain_topics.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>
+    <div class="label">Customers (lookalike anchors)</div><div class="chips">${S.seller.customers.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>`; },
+  () => { const k = S.room.kinds, total = S.room.companies, ops = k.operator || 0;
+    return `<div class="eyebrow">2 · Read the room</div><h2>${S.room.people} people, ${total} companies. ${ops} are buyers.</h2>
+    <div class="bar">${Object.entries(k).sort((a,b)=>b[1]-a[1]).map(([n,c]) => `<span title="${esc(n)} ${c}" style="width:${100*c/total}%;background:${KIND_COLORS[n] || '#56607A'}"></span>`).join('')}</div>
+    <div class="legend">${Object.entries(k).sort((a,b)=>b[1]-a[1]).map(([n,c]) => `<span><i style="background:${KIND_COLORS[n] || '#56607A'}"></i>${esc(n)} ${c}</span>`).join('')}</div>
+    <div class="grid" style="margin-top:32px">
+      <div class="card"><div class="label">Vendors skipped</div><div class="big">${k.vendor || 0}</div></div>
+      <div class="card"><div class="label">Intent signals found</div><div class="big">${S.room.signals}</div></div>
+      <div class="card"><div class="label">Operators to rank</div><div class="big">${ops}</div></div></div>`; },
+  () => `<div class="eyebrow">3 · Rank + why</div><h2>Top ${S.top.length}. Tap anyone for the evidence.</h2>
+    ${S.top.map((m, n) => row(m, n + 1, n === 0)).join('')}`,
+  () => { const M = S.memory; return `<div class="eyebrow">4 · Remember who you know</div>
+    <div class="note mono">“${esc(M.note)}”</div>
+    <div class="label">Written to the graph</div><div class="chips">${M.edges.map(e => `<span class="chip mono">${esc(e)}</span>`).join('')}</div>
+    <div class="move"><span>${esc(M.target)}</span><span class="big" style="color:var(--mute)">#${M.rank_before}</span><span>→</span><span class="big">#${M.rank_after ?? '—'}</span></div>
+    ${M.top_after.map((m, n) => row(m, n + 1, m.name === M.target)).join('')}`; },
+  () => `<div class="eyebrow">5 · Reach out</div><h2>Drafted from their own words. Sent only when you approve.</h2>
+    <div class="email"><div class="meta">To: ${esc(S.email.to)} · Subject: <b>${esc(S.email.subject)}</b></div>${esc(S.email.body)}</div>
+    <div class="approve"><button class="primary" onclick="document.getElementById('sent').style.display='block'">Approve &amp; send</button><button>Deny</button></div>
+    <div class="sent" id="sent">Approved. In the live agent this is TrueForge’s approval gate on send_email.</div>`,
+];
+
+function show(n) {
+  i = Math.max(0, Math.min(beats.length - 1, n));
+  document.getElementById('beat').innerHTML = beats[i]();
+  document.getElementById('dots').innerHTML = beats.map((_, k) => `<span class="dot${k === i ? ' on' : ''}" onclick="show(${k})"></span>`).join('');
+  document.getElementById('prev').style.visibility = i ? 'visible' : 'hidden';
+  document.getElementById('next').style.visibility = i < beats.length - 1 ? 'visible' : 'hidden';
+  window.scrollTo(0, 0);
+}
+document.getElementById('prev').onclick = () => show(i - 1);
+document.getElementById('next').onclick = () => show(i + 1);
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(i + 1); } if (e.key === 'ArrowLeft') show(i - 1); });
+fetch('story.json').then(r => r.json()).then(d => { S = d; show(0); })
+  .catch(() => { document.getElementById('beat').innerHTML = '<h2>story.json missing</h2><p class="lead">Run: datahere story &lt;seller_url&gt; &lt;event&gt;</p>'; });
+</script>
+</body>
+</html>
