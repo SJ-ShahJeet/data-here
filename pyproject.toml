@@ -1,0 +1,25 @@
+[project]
+name = "datahere"
+version = "0.1.0"
+description = "Who to reach out to at an event, and why."
+requires-python = ">=3.12"
+dependencies = [
+    "openai",
+    "falkordb",
+    "httpx",
+    "selectolax",
+    "pydantic",
+    "openpyxl",
+    "python-dotenv",
+    "mcp",
+]
+
+[project.scripts]
+datahere = "datahere.cli:main"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

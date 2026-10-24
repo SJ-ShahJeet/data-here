@@ -1,0 +1,144 @@
+{
+  "ingested_sessions": [
+    "2026-10-24-1.md",
+    "2026-10-24-2.md",
+    "2026-10-24-3.md",
+    "2026-10-24-4.md",
+    "2026-10-24-5.md",
+    "2026-10-24-6.md"
+  ],
+  "nodes": [
+    {
+      "base_weight": 0.5,
+      "claim": "community 1: graph.py, explain, init (+8 more)",
+      "first_seen": "2026-10-24",
+      "id": "n-55037a36c6",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-2.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "community 3: brightdata.py, fetch, find_company_domain (+5 more)",
+      "first_seen": "2026-10-24",
+      "id": "n-a753a7042e",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-2.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "community 4: pipeline.py, draft_email, enrich_person (+5 more)",
+      "first_seen": "2026-10-24",
+      "id": "n-0bece955a7",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-2.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "god nodes in blast radius: graph.py (HIGH), schema.py (HIGH)",
+      "first_seen": "2026-10-24",
+      "id": "n-a959283e80",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-3.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "community 4: graph.py",
+      "first_seen": "2026-10-24",
+      "id": "n-0366703f26",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-3.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.6,
+      "claim": "community 5: schema.py",
+      "first_seen": "2026-10-24",
+      "id": "n-1159c7ebec",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 2,
+      "source_session": "2026-10-24-3.md",
+      "status": "unreviewed",
+      "weight": 0.6
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "god nodes in blast radius: pipeline.py (CRITICAL)",
+      "first_seen": "2026-10-24",
+      "id": "n-2d562cd841",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-4.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.6,
+      "claim": "community 4: pipeline.py",
+      "first_seen": "2026-10-24",
+      "id": "n-ff5bde2a3d",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 2,
+      "source_session": "2026-10-24-4.md",
+      "status": "unreviewed",
+      "weight": 0.6
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "god nodes in blast radius: brightdata.py (CRITICAL), pipeline.py (CRITICAL), schema.py (HIGH)",
+      "first_seen": "2026-10-24",
+      "id": "n-bf51af4ce3",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-5.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    },
+    {
+      "base_weight": 0.6,
+      "claim": "community 1: brightdata.py",
+      "first_seen": "2026-10-24",
+      "id": "n-9f93758f40",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 2,
+      "source_session": "2026-10-24-5.md",
+      "status": "unreviewed",
+      "weight": 0.6
+    },
+    {
+      "base_weight": 0.5,
+      "claim": "god nodes in blast radius: brightdata.py (CRITICAL)",
+      "first_seen": "2026-10-24",
+      "id": "n-947d44b892",
+      "kind": "Dependency",
+      "last_seen": "2026-10-24",
+      "seen_count": 1,
+      "source_session": "2026-10-24-6.md",
+      "status": "unreviewed",
+      "weight": 0.5
+    }
+  ]
+}

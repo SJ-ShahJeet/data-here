@@ -119,3 +119,12 @@ dashboard/.impeccable/
 
 # per-machine agent settings
 .claude/settings.local.json
+
+# real attendee data: local only, never commit
+data/
+*.xlsx
+
+# local secrets, venv, scrape cache
+.env
+.venv/
+cache/

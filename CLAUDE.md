@@ -3,17 +3,18 @@
 ## Working On
 
 <!-- Edit this section: what you are building this week (1–3 sentences). Hooks never overwrite. -->
-data-here: a web-scraping agent that writes extractor code instead of paying for LLM
-extraction on every page. A human validates the output, the agent opens a PR (Qodo reviews it),
-and FalkorDB stores extractors so similar sites reuse them. Built for the WeMakeDevs
-"Patch the Conference" hackathon on 2026-10-24. Start with `KICKOFF.md`.
+data-here: tells a GTM team who to reach out to at an event, and why. Input = your company URL +
+the event's attendee sheet; Bright Data scrapes company sites, search and LinkedIn; FalkorDB scores
+fit/intent/lookalike/warmth and stores the "why" paths; a TrueForge (TrueFoundry) agent on OpenAI
+drives it over MCP and asks approval before sending email. WeMakeDevs "Patch the Conference"
+hackathon, 2026-10-24. `KICKOFF.md` is the original (superseded) idea; README.md is current.
+Real attendee data lives only in gitignored `data/`.
 
 
 ## Codebase
 
-<!-- graph-summary-updated: never -->
-Empty so far. Only memory-graph (`.memory-graph/`) and `KICKOFF.md` are here. New code,
-with nothing imported from Typed Web or Forkast.
+<!-- graph-summary-updated: 2026-10-24 -->
+Core abstractions (god nodes): `brightdata.py` (5), `config.py` (4), `pipeline.py` (8), `graph.py` (5), `schema.py` (5).
 
 
 ## Where to go
