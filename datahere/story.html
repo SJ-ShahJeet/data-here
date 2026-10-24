@@ -521,7 +521,8 @@ async function play() {
       if (s < n && !li.querySelector('.sub')) li.insertAdjacentHTML('beforeend', `<span class="sub">${esc(STEPS[s][1])}</span>`); });
     $('pill').textContent = `Step ${n + 1} of ${STEPS.length}`; $('ps').textContent = `Step ${n + 1} of ${STEPS.length}`;
     $('pf').style.width = `${100 * n / STEPS.length}%`;
-    panel.className = 'panel'; panel.innerHTML = '';
+    panel.className = 'panel';  // placeholders while the headline types, so the stage never looks empty
+    panel.innerHTML = `<div style="display:grid;gap:12px">${[70, 92, 55, 84].map(w => `<div class="skel" style="height:22px;width:${w}%"></div>`).join('')}</div>`;
     await type($('sh'), headline);
   };
   try {
