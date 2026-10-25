@@ -33,6 +33,10 @@ def build(seller_url: str, event: str, out: Path, top: int = 10, note_person: st
     people = graph._q("MATCH (p:Person)-[:ATTENDS]->(:Event {name: $e}) RETURN count(p)", e=event)[0][0]
     signals = graph._q("MATCH (s:Signal) RETURN count(s)")[0][0]
     before = graph.rank(seller_url, event, limit=top)
+    companies = [{"name": n, "domain": d or "", "kind": k or "other"} for n, d, k in graph._q(
+        "MATCH (:Event {name: $e})<-[:ATTENDS]-(:Person)-[:WORKS_AT]->(c:Company) "
+        "RETURN DISTINCT c.name, c.domain, c.kind ORDER BY c.name", e=event)]
+    domains = {c["name"]: c["domain"] for c in companies}
 
     # Memory beat: a note about someone you know who knows a mid-list prospect, then re-rank.
     # Written to the graph only for the snapshot, then removed, so the live demo starts clean.
@@ -49,13 +53,14 @@ def build(seller_url: str, event: str, out: Path, top: int = 10, note_person: st
         "seller": {"name": seller.name, "url": seller.url, "summary": seller.summary,
                    "icp": seller.icp.model_dump(), "customers": seller.customers},
         "room": {"people": people, "companies": sum(kinds.values()), "kinds": kinds, "signals": signals},
-        "top": [_card(m) for m in before],
+        "companies": companies,  # company names only: no attendee names in bulk
+        "top": [_card(m) | {"domain": domains.get(m.company, "")} for m in before],
         "memory": {"note": f"Met {note_person} at {note_place}. {note_person} knows {_short(target.name).rstrip('.')}.",
                    "edges": [e.replace(target.name, _short(target.name)) for e in edges],
                    "target": _short(target.name),
                    "rank_before": next(i for i, m in enumerate(before, 1) if m.person_id == target.person_id),
                    "rank_after": next((i for i, m in enumerate(after, 1) if m.person_id == target.person_id), None),
-                   "top_after": [_card(m) for m in after[:5]]},
+                   "top_after": [_card(m) | {"domain": domains.get(m.company, "")} for m in after[:5]]},
         "email": {"to": _short(first.name), "subject": email["subject"],
                   "body": email["body"].replace(first.name, _short(first.name))},
     }
